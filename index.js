@@ -1,24 +1,8 @@
-// * Add departments, roles, employees
-
-//   * View departments, roles, employees
-
-//   * Update employee roles
-
-// Bonus points if you're able to:
-
-//   * Update employee managers
-
-//   * View employees by manager
-
-//   * Delete departments, roles, and employees
-
-//   * View the total utilized budget of a department -- ie the combined salaries of all employees in that department
 var mysql = require("mysql");
 var inquirer = require("inquirer");
+var term = require('terminal-kit').terminal;
 const cTable = require("console.table");
 
-const { allowedNodeEnvironmentFlags } = require("process");
-const { createBrotliDecompress } = require("zlib");
 
 var connection = mysql.createConnection({
   host: "localhost",
@@ -30,20 +14,22 @@ var connection = mysql.createConnection({
 
 connection.connect(function (err) {
   if (err) throw err;
+  // term.slowTyping('Employee Tracker\n', { flashStyle: term.brightWhite }, function() { process.exit(); }) ;
   start();
 });
 
+
 function start() {
-  inquirer
-    .prompt({
+  inquirer.prompt(
+    {
       name: "action",
       type: "list",
       message: "What would you like to do?",
       choices: [
         "Add a new department, role, or employee",
-        "View departments, roles, employees",
+        "View departments, roles, or employees",
         "Update employee roles",
-        "View employees by manager",
+        "View the total utilized budget of a department",
         "Exit"
       ]
     })
@@ -58,8 +44,8 @@ function start() {
         case "Update employee roles":
           updateRoles();
           break;
-        case "View employees by manager":
-          viewByManager();
+        case "View the total utilized budget of a department":
+          viewBudget();
           break;
         case "exit":
           connection.end();
@@ -69,13 +55,14 @@ function start() {
 };
 
 function addContent() {
-  inquirer
-    .prompt({
+  inquirer.prompt(
+    {
       name: "addSomething",
       type: "list",
       message: "What would you like to add?",
       choices: ["Department", "Roles", "Employees"]
-    }).then(function (answer) {
+    }
+    ).then(function (answer) {
       switch (answer.addSomething) {
         case "Department":
           addDepartment();
@@ -99,7 +86,7 @@ function addDepartment() {
       message: "What is the name of the new department?"
     }).then(function (answer) {
       var query = `INSERT INTO department VALUE name = ?`;
-      connection.query(query, answer.addDept, function (err, res) {
+      connection.query(query, [answer.addDept], function (err, res) {
         if (err) throw err;
         console.log("A new department named " + answer.addDept + " has been added!\n");
         start();
@@ -140,7 +127,7 @@ function addRole() {
 
 function createNewRole(id) {
   var query = `INSERT INTO roles VALUES title = ? salary = ? dept_id = ?`;
-  connection.query(query, [answer.title, answer.salary, res.departments.id], function (err, res) {
+  connection.query(query, [answer.title, answer.salary, selectedDept.id], function (err, res) {
     if (err) throw err;
     console.log("A new role has been added. \nTitle: " + answer.title + "\nSalary: " + answer.salary);
     start();
@@ -173,10 +160,10 @@ function addEmployee() {
         console.log(selectedRole.id);
         createNewEmployee(id);
       })
-    })
+  })
 };
 
-function createNewEmployee(id){
+function createNewEmployee(id) {
   var query = `INSERT INTO employee VALUES firstName = ? lastName = ? role_id = ?`;
   connection.query(query, [answer.firstName, answer.lastName, selectedRole.id], function (err, res) {
     if (err) throw err;
@@ -184,4 +171,54 @@ function createNewEmployee(id){
     start();
   })
 };
-  
+
+//Called from the start function switch case if view something is selected
+function viewContent() {
+  inquirer.prompt(
+    {
+      name: "viewSomething",
+      type: "list",
+      message: "What would you like to views?",
+      choices: ["Department", "Roles", "Employees"]
+    }).then(function (answer) {
+      switch (answer.viewSomething) {
+        case "Department":
+          viewDepartments();
+          break;
+        case "Roles":
+          viewRoles();
+          break;
+        case "Employees":
+          viewEmployees();
+          break;
+      }
+    });
+};
+
+//Called from viewContent function is dept selected
+function viewDepartments() {
+    console.table(departments)
+    start();
+  };
+
+//Called from viewContent function is roles selected
+function viewRoles() {
+  console.table(roles)
+  start();
+};
+
+//Called from viewContent function is employees selected
+function viewEmployees() {
+  console.table(employees)
+  start();
+};
+
+//Called from the start function switch case if update role selected
+function updateRoles() {
+
+};
+
+//Called from start function switch case if view budget is selected
+function viewBudget(){
+
+};
