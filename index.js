@@ -113,12 +113,12 @@ function addRole() {
         message: "Select a department for this role"
       }
     ]).then(function (answers) {
-      const selectedDept = res.find(dept => dept.id === answers.deptId);
+      const selectedDept = res.find(dept => dept.name === answers.deptId);
         connection.query("INSERT INTO roles SET ?", 
         {
           title: answers.title,
           salary: answers.salary,
-          dept_id: selectedDept
+          dept_id: selectedDept.id
         },
           function (err, res) {
             if (err) throw err;
@@ -152,12 +152,12 @@ function addEmployee() {
         message: "Select a role for the employee"
       }
     ]).then(function (answers) {
-        const selectedRole = results.find(role => role.id === answers.roleId);
+        const selectedRole = results.find(role => role.title === answers.roleId);
         connection.query("INSERT INTO employees SET ?",
           {
             first_name: answers.firstName,
             last_name: answers.lastName,
-            role_id: selectedRole
+            role_id: selectedRole.id
           }, function (err, res) {
             if (err) throw err;
             console.log("Added new employee named " + answers.firstName + " " + answers.lastName + "\n");
@@ -167,20 +167,6 @@ function addEmployee() {
   })
 };
 
-// function createNewEmployee(answers) {
-//   connection.query(
-//     "INSERT INTO employee SET ?", {
-//       first_name: answer.firstName,
-//       last_name: answer.lastName,
-//       role_id: selectedRole
-//     }, function (err, res) {
-//     if (err) throw err;
-//     console.log("Added new employee named " + answer.firstName + " " + answer.lastName + "\n");
-//     start();
-//   })
-// };
-
-//Called from viewContent function is dept selected
 function viewDepartments() {
   connection.query(`SELECT * FROM departments`, function (err, res) {
     if (err) throw err;
@@ -189,7 +175,6 @@ function viewDepartments() {
   })
 };
 
-//Called from viewContent function is roles selected
 function viewRoles() {
   connection.query(`SELECT * FROM roles`, function (err, res) {
     if (err) throw err;
@@ -198,7 +183,6 @@ function viewRoles() {
   })
 };
 
-//Called from viewContent function is employees selected
 function viewEmployees() {
   connection.query(`SELECT * FROM employees`, function (err, res) {
     if (err) throw err;
