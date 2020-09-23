@@ -35,6 +35,8 @@ function start() {
         "Add a new role",
         "Add a new employee",
         "Remove an employee",
+        "Remove a role",
+        "Remove a department",
         "Update employee roles",
         "View the total utilized budget of a department",
         "Exit"
@@ -63,6 +65,12 @@ function start() {
         case "Remove an employee":
           removeEmployee();
           break;
+        case "Remove a role":
+          removeRole();
+          break;
+        case "Remove a department":
+            removeDepartment();
+            break;
         case "Update employee roles":
           selectEmp();
           break;
@@ -196,6 +204,7 @@ function viewEmployees() {
 
 function selectEmp() {
   connection.query("SELECT * FROM employees", function (err, res) {
+    if (err) throw err;
     inquirer.prompt([
       {
         type: "rawlist",
@@ -230,15 +239,16 @@ function selectEmp() {
 
 function removeEmployee() {
   connection.query("SELECT * FROM employees", function (err, res) {
+    if (err) throw err;
     inquirer.prompt([
       {
         type: "rawlist",
-        name: "selectEmp",
+        name: "removeEmp",
         message: "Select the employee who will be removed",
         choices: res.map(emp => emp.id && emp.first_name)
       }
     ]).then(function (answer) {
-      const selectedEmp = res.find(emp => emp.id && emp.first_name === answer.selectEmp);
+      const selectedEmp = res.find(emp => emp.id && emp.first_name === answer.removeEmp);
       connection.query("DELETE FROM employees WHERE ?",
         [{
           id: selectedEmp.id
@@ -246,6 +256,58 @@ function removeEmployee() {
         function (err, res) {
           if (err) throw err;
           console.log("Employee Removed\n");
+          start();
+        }
+      );
+    });
+  })
+};
+
+function removeRole() {
+  connection.query("SELECT * FROM roles", function (err, res) {
+    if (err) throw err;
+    inquirer.prompt([
+      {
+        type: "rawlist",
+        name: "removeRole",
+        message: "Select the role that will be removed",
+        choices: res.map(role => role.id && role.title)
+      }
+    ]).then(function (answer) {
+      const selectedRole = res.find(role => role.id && role.title === answer.removeRole);
+      connection.query("DELETE FROM roles WHERE ?",
+        [{
+          id: selectedRole.id
+        }],
+        function (err, res) {
+          if (err) throw err;
+          console.log("Role Removed\n");
+          start();
+        }
+      );
+    });
+  })
+};
+
+function removeDepartment() {
+  connection.query("SELECT * FROM departments", function (err, res) {
+    if (err) throw err;
+    inquirer.prompt([
+      {
+        type: "rawlist",
+        name: "removeDept",
+        message: "Select the department that will be removed",
+        choices: res.map(item => item.id && item.name)
+      }
+    ]).then(function (answer) {
+      const selectedDept = res.find(item => item.id && item.name === answer.removeDept);
+      connection.query("DELETE FROM roles WHERE ?",
+        [{
+          id: selectedDept.id
+        }],
+        function (err, res) {
+          if (err) throw err;
+          console.log("Department Removed\n");
           start();
         }
       );
