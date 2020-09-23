@@ -109,8 +109,8 @@ function addRole() {
       {
         name: "deptId",
         type: "rawlist",
-        choices: res.map(item => item.name),
-        message: "Select a department for this role"
+        message: "Select a department for this role",
+        choices: res.map(item => item.name)
       }
     ]).then(function (answers) {
       const selectedDept = res.find(dept => dept.name === answers.deptId);
@@ -148,11 +148,11 @@ function addEmployee() {
       {
         name: "roleId",
         type: "rawlist",
-        choices: results.map(role => role.title),
+        choices: results.map(item => item.title),
         message: "Select a role for the employee"
       }
     ]).then(function (answers) {
-        const selectedRole = results.find(role => role.title === answers.roleId);
+        const selectedRole = results.find(item => item.title === answers.roleId);
         connection.query("INSERT INTO employees SET ?",
           {
             first_name: answers.firstName,
@@ -191,40 +191,57 @@ function viewEmployees() {
   })
 };
 
-//Called from the start function switch case if update role selected
 function selectEmp() {
-  connection.query(`SELECT * FROM employees`, function (err, res) {
-    inquirer.prompt([
-      {
-        name: "update",
-        type: "rawlist",
-        message: "Select the employee you wish to update",
-        choices: res.map(item => item.firstName, item.lastName, item.id)
-    }
-  ]).then(function (answer) {
-      const selectedEmp = res.find(item => item.id);
-      console.log(selectedEmp);
-      updateEmp(selectedEmp);
-    })
-  })
-};
-
-function updateEmp(thisid) {
-  connection.query("SELECT * FROM roles", function (err, res) {
+  connection.query("SELECT * FROM employees", function (err, res) {
     inquirer.prompt([
       {
       type: "rawlist",
-      name: "newRole",
-      message: "Select the new role",
-      choices: res.map(item => item.name, item.id)
+      name: "selectEmp",
+      message: "Select the employee who is changing roles",
+      choices: res.map(emp => emp.id)
     }
   ]).then(function (answer) {
-      connection.query("UPDATE employees SET role_id = ? WHERE id = ?", [answer.newRole, thisid],
-        function (error) {
-          if (error) throw err;
-          start();
+      const selectedEmp = res.find(emp => emp.id === answer.selectEmp);
+      connection.query("SELECT * FROM roles", function (err, res) {
+        inquirer.prompt([
+          {
+          type: "rawlist",
+          name: "newRole",
+          message: "Select the new role for this employee",
+          choices: res.map(item => item.title)
         }
-      );
-    })
+      ]).then(function (answer) {
+        const selectedRole = res.find(role => role.title === answer.newRole);
+    
+          connection.query("UPDATE employees SET role_id = ? WHERE id = ?", [selectedRole.id, selectedEmp.id],
+            function (error) {
+              if (error) throw err;
+              start();
+            }
+          );
+        })
+      })    })
   })
 };
+
+// function updateEmp() {
+//   connection.query("SELECT * FROM roles", function (err, res) {
+//     inquirer.prompt([
+//       {
+//       type: "rawlist",
+//       name: "newRole",
+//       message: "Select the new role for this employee",
+//       choices: res.map(item => item.title)
+//     }
+//   ]).then(function (answer) {
+//     const selectedRole = res.find(role => role.title === answer.newRole);
+
+//       connection.query("UPDATE employees SET role_id = ? WHERE id = ?", [selectedRole.id, selectedEmp.id],
+//         function (error) {
+//           if (error) throw err;
+//           start();
+//         }
+//       );
+//     })
+//   })
+// };
